@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ulangan Harian Trigonometri Dasar - SMA Negeri 1 Tanjung, Brebes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        input, select, textarea {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(6, 78, 59, 0.85) 100%), 
+                        url('background.jpg') center/cover no-repeat fixed;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #0d9488; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #0f766e; }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-emerald-900/90 backdrop-blur-md text-white shadow-lg sticky top-0 z-50 border-b border-emerald-700/50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-amber-400/20 border border-amber-400/40 rounded-xl flex items-center justify-center text-amber-300">
+                    <i class="fas fa-calculator text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base md:text-lg leading-tight tracking-wide text-emerald-100">Ulangan Harian Trigonometri Dasar</h1>
+                    <p class="text-xs text-emerald-300 font-medium">SMA Negeri 1 Tanjung, Brebes (45 Menit)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div id="headerTimer" class="hidden items-center bg-emerald-950/80 px-3.5 py-1.5 rounded-xl border border-emerald-600/50 shadow-inner">
+                    <i class="far fa-clock text-amber-400 mr-2 animate-pulse"></i>
+                    <span id="timerDisplay" class="font-mono font-bold text-sm text-amber-300">45:00</span>
+                </div>
+                
+                <!-- TOMBOL AKSES GURU -->
+                <button onclick="openLoginModal()" id="btnGuruNav" class="bg-amber-500 hover:bg-amber-600 border border-amber-400 text-slate-950 text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center space-x-1.5 shadow-md hover:shadow-amber-500/20">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Akses Guru</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
+
+        <!-- 1. Form Registrasi Siswa -->
+        <div id="identitasSection" class="max-w-md mx-auto bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-emerald-100 p-6 md:p-8">
+
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 mx-auto mb-3 relative flex items-center justify-center rounded-2xl bg-emerald-100 border border-emerald-300 shadow-inner text-emerald-700 text-3xl">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900">Identitas Peserta Didik</h2>
+                <p class="text-xs text-slate-500 mt-1">Silakan pilih kelas, nomor absen, dan masukkan token.</p>
+            </div>
+
+            <div id="blockedAlert" class="hidden mb-6 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-sm">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-lg mr-3 mt-0.5"></i>
+                    <div>
+                        <strong class="font-semibold block mb-1">Akses Ditolak / Sudah Mengerjakan</strong>
+                        <span id="blockedMessage">Siswa ini tercatat telah menyelesaikan ulangan harian.</span>
+                        <div class="mt-3">
+                            <button onclick="openTokenModal()" class="text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg transition shadow-sm inline-flex items-center space-x-1">
+                                <i class="fas fa-key text-[10px]"></i>
+                                <span>Buka Akses Ulang (Khusus Guru)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="checkingLoader" class="hidden mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center justify-center space-x-2">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Memeriksa status pengerjaan siswa...</span>
+            </div>
+
+            <form id="startForm" onsubmit="event.preventDefault(); validateLogin();" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Lengkap Siswa</label>
+                    <input type="text" id="namaSiswa" required placeholder="Masukkan nama lengkap Anda" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm outline-none transition bg-white">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Kelas</label>
+                        <select id="kelasSiswa" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm outline-none transition bg-white">
+                            <option value="" disabled selected>-- Pilih Kelas --</option>
+                            <option value="X-1">X-1</option>
+                            <option value="X-2">X-2</option>
+                            <option value="X-3">X-3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">No. Absen</label>
+                        <select id="absenSiswa" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm outline-none transition bg-white">
+                            <option value="" disabled selected>-- Pilih Absen --</option>
+                            <!-- Script akan otomatis mengisi absen 1-36 -->
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Token Ulangan</label>
+                    <div class="relative">
+                        <input type="password" id="tokenPengerjaan" required placeholder="Masukkan token pengerjaan" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm outline-none transition font-mono tracking-wider bg-slate-50/50">
+                        <i class="fas fa-key absolute right-3 top-3 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+
+                <input type="hidden" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbyWHYFuyHtmipPKqCFPtiRlGtgLMf1eiuQlfSSPa5A_xU-eZObN8688hOGWcEqGNeRP/exec">
+
+                <button type="submit" id="btnNextLogin" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-2">
+                    <span>Lanjutkan ke Tata Tertib</span>
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- 1.B Halaman Tata Tertib & Persetujuan -->
+        <div id="rulesSection" class="hidden max-w-lg mx-auto bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-emerald-100 p-6 md:p-8">
+            <div class="text-center mb-5">
+                <div class="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner border border-emerald-200">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900">Tata Tertib & Petunjuk Pengerjaan</h2>
+                <p class="text-xs text-slate-500 mt-1">ULANGAN HARIAN TRIGONOMETRI DASAR - SMA NEGERI 1 TANJUNG, BREBES</p>
+            </div>
+
+            <!-- Box Isi Tata Tertib -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 max-h-56 overflow-y-auto custom-scrollbar space-y-3 leading-relaxed mb-4">
+                <div>
+                    <strong class="text-slate-800 block mb-1">A. KETENTUAN UMUM PESERTA</strong>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li><strong>Identitas:</strong> Peserta wajib memasukkan nama, kelas, dan nomor absen yang valid sesuai daftar hadir kelas.</li>
+                        <li><strong>Perangkat Ujian:</strong> Menggunakan gawai/laptop pribadi atau perangkat yang disediakan sekolah dengan koneksi stabil.</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong class="text-slate-800 block mb-1">B. PETUNJUK PENGERJAAN SOAL</strong>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li><strong>Durasi Ujian:</strong> Waktu pengerjaan soal adalah 45 menit dan dihitung mundur secara otomatis.</li>
+                        <li><strong>Jumlah & Jenis Soal:</strong> Terdapat 25 soal (Pilihan Ganda Kompleks dan Benar-Salah) yang diacak otomatis.</li>
+                        <li><strong>Sistem Pengiriman:</strong> Klik tombol "Selesai & Kirim Jawaban" di akhir panel navigasi jika seluruh soal telah dikerjakan.</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong class="text-slate-800 block mb-1">C. LARANGAN</strong>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>Dilarang bekerja sama, berdiskusi, atau membuka tab browser lain selama ulangan berlangsung.</li>
+                    </ul>
+                </div>
+                <div class="text-center font-bold text-emerald-800 pt-2 border-t border-slate-200">
+                    Selamat mengerjakan! Kerjakan dengan jujur dan penuh teliti.
+                </div>
+            </div>
+
+            <!-- Checkbox Persetujuan -->
+            <div class="mb-5 flex items-start space-x-2.5 bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200/80 shadow-sm">
+                <input type="checkbox" id="agreeCheckbox" onchange="toggleStartButton()" class="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer">
+                <label for="agreeCheckbox" class="text-xs text-slate-700 font-semibold cursor-pointer select-none">
+                    Saya menyatakan telah membaca, memahami, dan menyetujui seluruh tata tertib serta petunjuk ulangan harian di atas.
+                </label>
+            </div>
+
+            <div class="flex space-x-3">
+                <button onclick="backToLogin()" class="w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3.5 rounded-xl text-xs transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali
+                </button>
+                <button type="button" id="btnStartQuiz" disabled onclick="startQuiz()" class="w-2/3 bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-2 opacity-50 cursor-not-allowed text-xs">
+                    <span>Mulai Pengerjaan (45 Menit)</span>
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. Halaman Pengerjaan Soal -->
+        <div id="quizSection" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="lg:col-span-3 space-y-6">
+                <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-emerald-100 p-6 md:p-8">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-6">
+                        <span class="text-xs font-extrabold text-emerald-700 uppercase tracking-wider bg-emerald-100/80 px-3 py-1.5 rounded-xl">Soal No. <span id="currentQuestionNum">1</span> dari <span id="totalQuestionsCount">25</span></span>
+                        <div class="text-xs text-slate-500 font-medium">
+                            Terjawab: <span id="answeredCount" class="font-bold text-slate-800">0</span>/<span id="totalQuestionsCount2">25</span>
+                        </div>
+                    </div>
+
+                    <div id="questionText" class="text-base md:text-lg font-semibold text-slate-900 mb-6 leading-relaxed"></div>
+                    <div id="optionsContainer" class="space-y-3"></div>
+
+                    <div class="flex justify-between items-center mt-8 pt-5 border-t border-slate-100">
+                        <button id="prevBtn" onclick="navigateQuestion(-1)" class="px-5 py-2.5 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 text-sm font-semibold flex items-center space-x-2 transition disabled:opacity-40">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                            <span>Sebelumnya</span>
+                        </button>
+                        
+                        <button id="nextBtn" onclick="navigateQuestion(1)" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-sm font-semibold flex items-center space-x-2 transition shadow-md">
+                            <span>Berikutnya</span>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-emerald-100 p-5 sticky top-20">
+                    <h3 class="font-bold text-sm text-slate-800 mb-3 border-b pb-2 flex items-center space-x-2">
+                        <i class="fas fa-th-large text-emerald-600"></i>
+                        <span>Navigasi Soal</span>
+                    </h3>
+                    <div id="questionGrid" class="grid grid-cols-5 gap-2 max-h-[320px] overflow-y-auto custom-scrollbar p-1"></div>
+                    
+                    <div class="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                        <div class="flex items-center space-x-2 text-xs text-slate-600 font-medium">
+                            <span class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span>
+                            <span>Sedang Dikerjakan</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs text-slate-600 font-medium">
+                            <span class="w-3 h-3 rounded-full bg-teal-500 inline-block"></span>
+                            <span>Sudah Dijawab</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs text-slate-600 font-medium">
+                            <span class="w-3 h-3 rounded-full bg-slate-100 border border-slate-300 inline-block"></span>
+                            <span>Belum Dijawab</span>
+                        </div>
+
+                        <button onclick="confirmSubmission()" class="w-full mt-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+                            <i class="fas fa-paper-plane text-xs"></i>
+                            <span>Selesai & Kirim Jawaban</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Halaman Akhir Peserta -->
+        <div id="resultSection" class="hidden max-w-xl mx-auto space-y-6">
+            <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-emerald-100 p-8 md:p-10 text-center">
+                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-5 text-4xl shadow-inner">
+                    <i class="fas fa-award"></i>
+                </div>
+                
+                <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Jawaban Berhasil Terkirim!</h2>
+                
+                <div class="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 text-sm font-semibold my-6 leading-relaxed shadow-sm">
+                    Terimakasih, Anda telah menyelesaikan Ulangan Harian Trigonometri Dasar SMA Negeri 1 Tanjung, Brebes.
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider">Nama Siswa</span>
+                        <span id="resNama" class="font-bold text-slate-800 text-sm block mt-1 truncate">-</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <span class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider">Kelas / Absen</span>
+                        <span id="resKelasAbsen" class="font-bold text-slate-800 text-sm block mt-1">-</span>
+                    </div>
+                </div>
+
+                <div id="submissionStatus" class="mt-6 p-3.5 bg-amber-50 rounded-xl text-xs font-semibold text-amber-800 flex items-center justify-center space-x-2 border border-amber-200">
+                    <i class="fas fa-spinner fa-spin text-sm"></i>
+                    <span>Memproses pengiriman jawaban ke server...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. DASHBOARD GURU -->
+        <div id="guruDashboardSection" class="hidden space-y-6">
+            <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-emerald-100 p-6 md:p-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between border-b pb-4 mb-6 gap-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-900 flex items-center space-x-2">
+                            <i class="fas fa-gavel text-amber-500"></i>
+                            <span>Panel Rekapitulasi Nilai Ulangan Harian (Guru)</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">Data hasil nilai pengerjaan seluruh peserta didik.</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <button onclick="fetchGuruData()" class="px-3.5 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 border border-emerald-200">
+                            <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                            <span>Muat Ulang Data</span>
+                        </button>
+                        <button onclick="logoutGuru()" class="px-3.5 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 border border-rose-200">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Keluar Panel</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter & Search -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Cari Nama Siswa</label>
+                        <div class="relative">
+                            <input type="text" id="searchGuru" oninput="filterAndRenderGuruTable()" placeholder="Ketik nama siswa..." class="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <i class="fas fa-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Filter Kelas</label>
+                        <select id="filterKelasGuru" onchange="filterAndRenderGuruTable()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                            <option value="ALL">Semua Kelas</option>
+                            <option value="X-1">X-1</option>
+                            <option value="X-2">X-2</option>
+                            <option value="X-3">X-3</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 w-full flex justify-between items-center">
+                            <span class="text-xs text-slate-500 font-medium">Total Siswa Terdata:</span>
+                            <span id="totalSiswaBadge" class="text-sm font-bold text-emerald-700">0 Siswa</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Data Nilai -->
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 custom-scrollbar">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-900 text-white font-bold border-b border-emerald-950">
+                                <th class="p-3.5">Nama Siswa</th>
+                                <th class="p-3.5 text-center">Kelas</th>
+                                <th class="p-3.5 text-center">Absen</th>
+                                <th class="p-3.5 text-center">Skor (Benar/Total)</th>
+                                <th class="p-3.5 text-center">Nilai Akhir</th>
+                                <th class="p-3.5 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guruTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white"></tbody>
+                    </table>
+                </div>
+
+                <div id="guruTableLoader" class="py-12 text-center text-slate-400 text-xs">
+                    <i class="fas fa-spinner fa-spin text-2xl text-emerald-600 mb-2"></i>
+                    <p>Mengambil data nilai dari Google Sheets...</p>
+                </div>
+
+                <div id="guruTableEmpty" class="hidden py-12 text-center text-slate-400 text-xs">
+                    <i class="fas fa-folder-open text-3xl text-slate-300 mb-2"></i>
+                    <p>Belum ada data nilai peserta yang ditemukan.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Login Guru -->
+    <div id="loginGuruModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+                    <i class="fas fa-user-shield text-amber-500"></i>
+                    <span>Login Akses Guru</span>
+                </h3>
+                <button onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600 text-sm">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="event.preventDefault(); processGuruLogin();" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username</label>
+                    <input type="text" id="guruUsername" required placeholder="Masukkan username" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 text-xs outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Password</label>
+                    <input type="password" id="guruPassword" required placeholder="Masukkan password" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 text-xs outline-none">
+                </div>
+                <p id="loginErrorMsg" class="hidden text-xs text-rose-600 font-semibold mt-1">Username atau Password Guru salah!</p>
+                
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeLoginModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl transition shadow-md">Masuk Panel Guru</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit Nilai Siswa -->
+    <div id="editNilaiModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+                    <i class="fas fa-edit text-emerald-600"></i>
+                    <span>Edit Nilai Siswa</span>
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-sm">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="event.preventDefault(); saveEditedScore();" class="space-y-3">
+                <input type="hidden" id="editIndex">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase">Nama Siswa</label>
+                    <input type="text" id="editNama" disabled class="w-full px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Skor Benar (dari 25 Soal)</label>
+                    <input type="number" id="editSkor" min="0" max="25" required oninput="calculateEditPercentage()" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 text-xs outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nilai Akhir (0 - 100)</label>
+                    <input type="number" id="editPersentase" readonly class="w-full px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 outline-none">
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
+                    <button type="submit" id="btnSaveEdit" class="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition shadow-md">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Token Guru untuk Akses Ulang Siswa -->
+    <div id="tokenModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+                    <i class="fas fa-user-shield text-amber-500"></i>
+                    <span>Verifikasi Token Guru</span>
+                </h3>
+                <button onclick="closeTokenModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="text-xs text-slate-500">Masukkan token guru untuk memberikan izin pengerjaan ulang pada siswa ini.</p>
+            <div>
+                <input type="password" id="inputTokenGuru" placeholder="Masukkan Token Guru" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm outline-none">
+                <p id="tokenErrorMsg" class="hidden text-xs text-rose-600 font-semibold mt-1">Token salah! Akses ditolak.</p>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeTokenModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
+                <button onclick="verifyTeacherToken()" class="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition shadow-md">Buka Akses Ulang</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Populate Absen 1 - 36
+        document.addEventListener('DOMContentLoaded', () => {
+            const absenSelect = document.getElementById('absenSiswa');
+            for (let i = 1; i <= 36; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.innerText = i;
+                absenSelect.appendChild(opt);
+            }
+            restoreSessionIfExist();
+
+            if (localStorage.getItem('guru_logged_in') === 'true') {
+                document.getElementById('btnGuruNav').innerHTML = `<i class="fas fa-user-check text-slate-950"></i><span>Panel Guru Aktif</span>`;
+            }
+        });
+
+        // Anti Curang / Disable Right Click & Inspect
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('selectstart', e => { if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) e.preventDefault(); });
+        document.addEventListener('copy', e => e.preventDefault());
+        document.addEventListener('cut', e => e.preventDefault());
+        document.addEventListener('dragstart', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) || (e.ctrlKey && [85, 83, 65, 67].includes(e.keyCode))) {
+                e.preventDefault();
+            }
+        });
+
+        function toggleStartButton() {
+            const checkbox = document.getElementById('agreeCheckbox');
+            const btnStart = document.getElementById('btnStartQuiz');
+            
+            if (checkbox.checked) {
+                btnStart.disabled = false;
+                btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnStart.classList.add('hover:shadow-emerald-600/30');
+            } else {
+                btnStart.disabled = true;
+                btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+                btnStart.classList.remove('hover:shadow-emerald-600/30');
+            }
+        }
+
+        function backToLogin() {
+            document.getElementById('rulesSection').classList.add('hidden');
+            document.getElementById('identitasSection').classList.remove('hidden');
+            document.getElementById('agreeCheckbox').checked = false;
+            toggleStartButton();
+        }
+
+        const SECRET_TEACHER_TOKEN = "GURU2026";
+        const REQUIRED_STUDENT_TOKEN = "TRIGONOMETRI";
+        const TOTAL_DURATION_SECONDS = 45 * 60; // 45 Menit
+
+        const GURU_USER = "admin";
+        const GURU_PASS = "00000000";
+
+        let guruAllData = [];
+
+        // 25 Soal Lengkap dari File Word (20 Pilihan Ganda Kompleks & 5 Soal Benar-Salah)
+        const rawQuestionsData = [
+            // Bagian 1: Pilihan Ganda Kompleks (1-20)
+            {
+                "id": 1,
+                "text": "Nomor 1: Manakah dari nilai sudut berikut yang setara dengan 2/3 putaran?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. 240°", "B. 4/3π rad", "C. 120°", "D. 2/3π rad", "E. 8/6π rad"],
+                "answer": [0, 1, 4] // A, B, E
+            },
+            {
+                "id": 2,
+                "text": "Nomor 2: Diketahui sudut θ = 135°. Pernyataan mana saja yang benar mengenai sudut tersebut?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. Sudut θ berada di Kuadran II.", "B. Nilai sin θ adalah positif.", "C. Nilai cos θ adalah positif.", "D. Setara dengan 3/4π rad.", "E. Nilai tan θ = 1."],
+                "answer": [0, 1, 3] // A, B, D
+            },
+            {
+                "id": 3,
+                "text": "Nomor 3: Pilihlah semua nilai trigonometri berikut yang bernilai negatif!<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. sin 240°", "B. cos 330°", "C. tan 210°", "D. cos 120°", "E. tan 135°"],
+                "answer": [0, 3, 4] // A, D, E
+            },
+            {
+                "id": 4,
+                "text": "Nomor 4: Diketahui sebuah segitiga siku-siku ABC dengan siku-siku di B. Jika panjang AB = 3 cm dan BC = 4 cm, manakah perbandingan trigonometri untuk sudut A yang benar?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. sin A = 4/5", "B. cos A = 3/5", "C. tan A = 4/3", "D. csc A = 3/4", "E. sec A = 5/4"],
+                "answer": [0, 1, 2] // A, B, C
+            },
+            {
+                "id": 5,
+                "text": "Nomor 5: Manakah dari sudut berikut yang memiliki nilai sinus sama dengan 1/2?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. 30°", "B. 150°", "C. 210°", "D. 390°", "E. 5/6π rad"],
+                "answer": [0, 1, 3, 4] // A, B, D, E
+            },
+            {
+                "id": 6,
+                "text": "Nomor 6: Manakah hubungan perbandingan trigonometri kebalikan berikut yang benar?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. csc α = 1/sin α", "B. sec α = 1/tan α", "C. cot α = 1/tan α", "D. sec α = 1/cos α", "E. csc α = 1/sec α"],
+                "answer": [0, 2, 3] // A, C, D
+            },
+            {
+                "id": 7,
+                "text": "Nomor 7: Pilihlah semua sudut berikut yang nilai tangensnya adalah √3!<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. 60°", "B. 120°", "C. 240°", "D. 1/3π rad", "E. 4/3π rad"],
+                "answer": [0, 2, 3, 4] // A, C, D, E
+            },
+            {
+                "id": 8,
+                "text": "Nomor 8: Manakah dari nilai sudut berikut yang memiliki nilai cosinus sama dengan 0?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. 0°", "B. 90°", "C. 180°", "D. 270°", "E. 450°"],
+                "answer": [1, 3, 4] // B, D, E
+            },
+            {
+                "id": 9,
+                "text": "Nomor 9: Sudut berarah jarum jam diberi tanda negatif. Manakah pernyataan berikut yang bernilai benar?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. -30° berada di Kuadran IV.", "B. sin(-30°) = -sin 30°.", "C. cos(-30°) = -cos 30°.", "D. -30° sepihak/senilai posisi dengan 330°.", "E. tan(-30°) = tan 30°."],
+                "answer": [0, 1, 3] // A, B, D
+            },
+            {
+                "id": 10,
+                "text": "Nomor 10: Diketahui sin α = 5/13 dengan α adalah sudut lancip. Manakah nilai perbandingan lainnya yang benar?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. cos α = 12/13", "B. tan α = 5/12", "C. csc α = 13/5", "D. sec α = 13/5", "E. cot α = 12/5"],
+                "answer": [0, 1, 2, 4] // A, B, C, E
+            },
+            {
+                "id": 11,
+                "text": "Nomor 11: Manakah nilai sudut berikut yang letak posisinya berada di Kuadran III?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. 200°", "B. 5/4π rad", "C. 280°", "D. -120°", "E. 500°"],
+                "answer": [0, 1, 3] // A, B, D
+            },
+            {
+                "id": 12,
+                "text": "Nomor 12: Pilihlah semua pernyataan yang benar mengenai konsep sudut istimewa berikut!<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. Nilai sin 45° sama dengan nilai cos 45°.", "B. Nilai tan 45° sama dengan 1.", "C. Nilai sin 60° lebih kecil dari nilai sin 30°.", "D. Nilai cos 0° adalah nilai maksimum fungsi cosinus di Kuadran I.", "E. Nilai tan 90° adalah 0."],
+                "answer": [0, 1, 3] // A, B, D
+            },
+            {
+                "id": 13,
+                "text": "Nomor 13: Sebuah tangga disandarkan pada dinding dengan sudut elevasi 60°. Jika panjang tangga adalah 6 meter, manakah pernyataan yang benar?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. Jarak kaki tangga ke dinding adalah 3 meter.", "B. Ketinggian ujung tangga pada dinding adalah 3√3 meter.", "C. Jarak kaki tangga ke dinding adalah 3√3 meter.", "D. Rasio tinggi dinding terhadap jarak kaki tangga adalah √3.", "E. Ketinggian ujung tangga adalah 3 meter."],
+                "answer": [0, 1, 3] // A, B, D
+            },
+            {
+                "id": 14,
+                "text": "Nomor 14: Manakah sudut berikut yang nilainya setara dengan sin 60°?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. cos 30°", "B. sin 120°", "C. cos 150°", "D. sin 240°", "E. cos(-30°)"],
+                "answer": [0, 1, 4] // A, B, E
+            },
+            {
+                "id": 15,
+                "text": "Nomor 15: Pilihlah semua nilai perbandingan trigonometri yang bernilai 1 atau -1!<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. tan 45°", "B. cos 180°", "C. sin 270°", "D. tan 135°", "E. sin 90°"],
+                "answer": [0, 1, 2, 3, 4] // A, B, C, D, E
+            },
+            {
+                "id": 16,
+                "text": "Nomor 16: Untuk sudut θ di Kuadran IV, manakah pernyataan tanda perbandingan yang benar?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. sin θ < 0", "B. cos θ > 0", "C. tan θ > 0", "D. sec θ > 0", "E. csc θ > 0"],
+                "answer": [0, 1, 3] // A, B, D
+            },
+            {
+                "id": 17,
+                "text": "Nomor 17: Manakah dari konversi ukuran sudut berikut yang bernilai benar?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. 90° = 1/2π rad", "B. 45° = 1/4π rad", "C. 30° = 1/3π rad", "D. 60° = 1/3π rad", "E. 180° = π rad"],
+                "answer": [0, 1, 3, 4] // A, B, D, E
+            },
+            {
+                "id": 18,
+                "text": "Nomor 18: Diketahui tan β = 1 dan β berada di Kuadran III. Manakah pernyataan berikut yang benar?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. β = 225°", "B. sin β = -1/2√2", "C. cos β = -1/2√2", "D. β = 5/4π rad", "E. sec β = √2"],
+                "answer": [0, 1, 2, 3] // A, B, C, D
+            },
+            {
+                "id": 19,
+                "text": "Nomor 19: Pilihlah semua nilai sudut yang memiliki posisi terminal/garis akhir yang sama dengan sudut 60°!<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. 420°", "B. 780°", "C. -300°", "D. 120°", "E. -60°"],
+                "answer": [0, 1, 2] // A, B, C
+            },
+            {
+                "id": 20,
+                "text": "Nomor 20: Seorang anak melihat pohon dengan sudut elevasi 45°. Jika jarak anak ke pohon adalah 10 meter, manakah pernyataan berikut yang benar?<br><small class='text-slate-500 font-normal'>(Pilihlah semua jawaban yang benar)</small>",
+                "type": "complex",
+                "options": ["A. Tinggi pohon adalah 10 meter.", "B. Jika ia menjauh, sudut elevasi akan mengecil.", "C. Jika ia mendekat, sudut elevasi akan membesar.", "D. Sisi depan segitiga fiktif tersebut adalah jarak anak ke pohon.", "E. Perbandingan tinggi pohon dengan jarak anak adalah 1."],
+                "answer": [0, 1, 2, 4] // A, B, C, E
+            },
+            // Bagian 2: Soal Benar-Salah (21-25)
+            {
+                "id": 21,
+                "text": "Nomor 21 (Benar/Salah): <b>Stimulus:</b> Roda berputar searah jarum jam sebesar 1,5 putaran penuh.<br>Pernyataan: Sudut hasil rotasi roda gigi tersebut bernilai positif.",
+                "type": "boolean",
+                "options": ["Benar", "Salah"],
+                "answer": 1 // Salah
+            },
+            {
+                "id": 22,
+                "text": "Nomor 22 (Benar/Salah): <b>Stimulus:</b> Segitiga siku-siku PQR siku-siku di Q. PQ = 5 cm, PR = 13 cm. Sudut θ di R.<br>Pernyataan: Sisi depan sudut θ memiliki panjang 5 cm.",
+                "type": "boolean",
+                "options": ["Benar", "Salah"],
+                "answer": 0 // Benar
+            },
+            {
+                "id": 23,
+                "text": "Nomor 23 (Benar/Salah): <b>Stimulus:</b> X = sin 120°, Y = cos 240°, Z = tan 315°.<br>Pernyataan: Nilai X berwujud bilangan positif karena berada di Kuadran II.",
+                "type": "boolean",
+                "options": ["Benar", "Salah"],
+                "answer": 0 // Benar
+            },
+            {
+                "id": 24,
+                "text": "Nomor 24 (Benar/Salah): <b>Stimulus:</b> Mengamati balon udara dari jarak 20 m, sudut elevasi 30°, tinggi mata 1,5 m.<br>Pernyataan: Tinggi tiang dari batas mata pengamat ke atas dapat dicari menggunakan perbandingan sinus.",
+                "type": "boolean",
+                "options": ["Ya / Benar", "Tidak / Salah"],
+                "answer": 1 // Tidak / Salah
+            },
+            {
+                "id": 25,
+                "text": "Nomor 25 (Benar/Salah): <b>Stimulus:</b> A = sin 750°, B = cos 420°.<br>Pernyataan: Sudut 750° setara dengan sudut 30° setelah dikurangi dua putaran penuh.",
+                "type": "boolean",
+                "options": ["Benar", "Salah"],
+                "answer": 0 // Benar
+            }
+        ];
+
+        let questionsData = [];
+        let currentQuestion = 0;
+        let userAnswers = [];
+        let studentData = {};
+        let timerInterval = null;
+        let startTime = null;
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        async function checkIdentityAvailability() {
+            const nama = document.getElementById('namaSiswa').value.trim();
+            const kelas = document.getElementById('kelasSiswa').value;
+            const absen = document.getElementById('absenSiswa').value;
+            const scriptUrl = document.getElementById('scriptUrl').value.trim();
+            const alertBox = document.getElementById('blockedAlert');
+            const alertMsg = document.getElementById('blockedMessage');
+            const btnNext = document.getElementById('btnNextLogin');
+            const loader = document.getElementById('checkingLoader');
+
+            if (!nama || !kelas || !absen) return;
+
+            if (localStorage.getItem(`completed_quiz_${kelas}_${absen}`)) {
+                alertMsg.innerText = `Siswa Kelas ${kelas} Absen ${absen} tercatat telah menyelesaikan ulangan harian.`;
+                alertBox.classList.remove('hidden');
+                btnNext.disabled = true;
+                btnNext.classList.add('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            if (scriptUrl) {
+                loader.classList.remove('hidden');
+                btnNext.disabled = true;
+                btnNext.classList.add('opacity-50', 'cursor-not-allowed');
+
+                try {
+                    const checkUrl = `${scriptUrl}?kelas=${encodeURIComponent(kelas)}&absen=${encodeURIComponent(absen)}`;
+                    const response = await fetch(checkUrl);
+                    const resData = await response.json();
+
+                    if (resData.alreadySubmitted) {
+                        alertMsg.innerText = `Siswa Kelas ${kelas} Absen ${absen} tercatat SUDAH MENGERJAKAN di server. Akses dikunci.`;
+                        alertBox.classList.remove('hidden');
+                        btnNext.disabled = true;
+                        btnNext.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        alertBox.classList.add('hidden');
+                        btnNext.disabled = false;
+                        btnNext.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                } catch (err) {
+                    alertBox.classList.add('hidden');
+                    btnNext.disabled = false;
+                    btnNext.classList.remove('opacity-50', 'cursor-not-allowed');
+                } finally {
+                    loader.classList.add('hidden');
+                }
+            }
+        }
+
+        document.getElementById('kelasSiswa').addEventListener('change', checkIdentityAvailability);
+        document.getElementById('absenSiswa').addEventListener('change', checkIdentityAvailability);
+
+        function openTokenModal() {
+            document.getElementById('inputTokenGuru').value = '';
+            document.getElementById('tokenErrorMsg').classList.add('hidden');
+            document.getElementById('tokenModal').classList.remove('hidden');
+        }
+
+        function closeTokenModal() {
+            document.getElementById('tokenModal').classList.add('hidden');
+        }
+
+        function verifyTeacherToken() {
+            const tokenInput = document.getElementById('inputTokenGuru').value.trim();
+            const kelas = document.getElementById('kelasSiswa').value;
+            const absen = document.getElementById('absenSiswa').value;
+
+            if (tokenInput === SECRET_TEACHER_TOKEN) {
+                localStorage.removeItem(`completed_quiz_${kelas}_${absen}`);
+                localStorage.removeItem('active_quiz_session');
+                localStorage.removeItem('pending_quiz_submission');
+                
+                closeTokenModal();
+                document.getElementById('blockedAlert').classList.add('hidden');
+                
+                const btnNext = document.getElementById('btnNextLogin');
+                btnNext.disabled = false;
+                btnNext.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                alert(`Akses pengerjaan ulang berhasil dibuka oleh Guru untuk Kelas ${kelas} Absen ${absen}!`);
+            } else {
+                document.getElementById('tokenErrorMsg').classList.remove('hidden');
+            }
+        }
+
+        function validateLogin() {
+            const nama = document.getElementById('namaSiswa').value.trim();
+            const kelas = document.getElementById('kelasSiswa').value;
+            const absen = document.getElementById('absenSiswa').value;
+            const tokenInput = document.getElementById('tokenPengerjaan').value.trim().toUpperCase();
+            const scriptUrl = document.getElementById('scriptUrl').value.trim();
+
+            if (!nama || !kelas || !absen || !tokenInput) {
+                alert("Harap isi nama, kelas, nomor absen, dan token pengerjaan!");
+                return;
+            }
+
+            if (tokenInput !== REQUIRED_STUDENT_TOKEN) {
+                alert("Token pengerjaan salah! Silakan tanyakan token kepada guru pengampu.");
+                return;
+            }
+
+            studentData = { nama, kelas, absen, scriptUrl };
+
+            document.getElementById('identitasSection').classList.add('hidden');
+            document.getElementById('rulesSection').classList.remove('hidden');
+        }
+
+        function saveCurrentSession() {
+            const sessionData = { studentData, currentQuestion, userAnswers, questionsData, startTime };
+            localStorage.setItem('active_quiz_session', JSON.stringify(sessionData));
+        }
+
+        function restoreSessionIfExist() {
+            const savedSession = localStorage.getItem('active_quiz_session');
+            if (savedSession) {
+                try {
+                    const data = JSON.parse(savedSession);
+                    studentData = data.studentData;
+                    questionsData = data.questionsData || rawQuestionsData;
+                    currentQuestion = data.currentQuestion || 0;
+                    userAnswers = data.userAnswers || new Array(questionsData.length).fill(null);
+                    startTime = data.startTime || Date.now();
+
+                    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                    const remainingSeconds = TOTAL_DURATION_SECONDS - elapsedSeconds;
+
+                    if (remainingSeconds <= 0) {
+                        alert("Waktu pengerjaan ulangan telah habis saat halaman dimuat ulang!");
+                        submitQuiz();
+                        return;
+                    }
+
+                    document.getElementById('identitasSection').classList.add('hidden');
+                    document.getElementById('rulesSection').classList.add('hidden');
+                    document.getElementById('quizSection').classList.remove('hidden');
+                    document.getElementById('headerTimer').classList.remove('hidden');
+                    document.getElementById('headerTimer').classList.add('flex');
+
+                    document.getElementById('btnGuruNav').classList.add('hidden');
+
+                    document.getElementById('totalQuestionsCount').innerText = questionsData.length;
+                    document.getElementById('totalQuestionsCount2').innerText = questionsData.length;
+
+                    renderQuestionGrid();
+                    loadQuestion(currentQuestion);
+                    startTimer();
+                } catch(e) {
+                    localStorage.removeItem('active_quiz_session');
+                }
+            }
+        }
+
+        function startQuiz() {
+            const checkbox = document.getElementById('agreeCheckbox');
+
+            if (!checkbox.checked) {
+                alert("Anda harus mencentang kotak persetujuan tata tertib terlebih dahulu!");
+                return;
+            }
+
+            startTime = Date.now();
+            questionsData = [...rawQuestionsData]; // Sesuai urutan atau di-shuffle jika diinginkan
+            userAnswers = new Array(questionsData.length).fill(null);
+
+            saveCurrentSession();
+
+            document.getElementById('rulesSection').classList.add('hidden');
+            document.getElementById('quizSection').classList.remove('hidden');
+            document.getElementById('headerTimer').classList.remove('hidden');
+            document.getElementById('headerTimer').classList.add('flex');
+
+            document.getElementById('btnGuruNav').classList.add('hidden');
+
+            document.getElementById('totalQuestionsCount').innerText = questionsData.length;
+            document.getElementById('totalQuestionsCount2').innerText = questionsData.length;
+
+            renderQuestionGrid();
+            loadQuestion(0);
+            startTimer();
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            function updateTimerDisplay() {
+                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const remainingSeconds = TOTAL_DURATION_SECONDS - elapsedSeconds;
+
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timerDisplay').innerText = "00:00";
+                    alert("Waktu pengerjaan ulangan harian telah habis! Jawaban Anda dikirimkan otomatis.");
+                    submitQuiz();
+                    return;
+                }
+
+                const minutes = Math.floor(remainingSeconds / 60);
+                const seconds = remainingSeconds % 60;
+                document.getElementById('timerDisplay').innerText = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            updateTimerDisplay();
+            timerInterval = setInterval(updateTimerDisplay, 1000);
+        }
+
+        function renderQuestionGrid() {
+            const grid = document.getElementById('questionGrid');
+            grid.innerHTML = '';
+
+            questionsData.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `grid-btn-${idx}`;
+                btn.innerText = idx + 1;
+                btn.onclick = () => loadQuestion(idx);
+                btn.className = `h-9 w-full rounded-xl text-xs font-bold flex items-center justify-center transition border ${getGridBtnStyle(idx)}`;
+                grid.appendChild(btn);
+            });
+        }
+
+        function getGridBtnStyle(idx) {
+            if (idx === currentQuestion) {
+                return 'bg-emerald-600 text-white border-emerald-600 shadow-md';
+            } else if (isAnswered(idx)) {
+                return 'bg-teal-500 text-white border-teal-500';
+            } else {
+                return 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100';
+            }
+        }
+
+        function isAnswered(idx) {
+            const ans = userAnswers[idx];
+            if (ans === null || ans === undefined) return false;
+            if (Array.isArray(ans) && ans.length === 0) return false;
+            return true;
+        }
+
+        function updateGridBtnStyles() {
+            questionsData.forEach((_, idx) => {
+                const btn = document.getElementById(`grid-btn-${idx}`);
+                if (btn) btn.className = `h-9 w-full rounded-xl text-xs font-bold flex items-center justify-center transition border ${getGridBtnStyle(idx)}`;
+            });
+        }
+
+        function loadQuestion(idx) {
+            currentQuestion = idx;
+            saveCurrentSession();
+            const q = questionsData[idx];
+
+            document.getElementById('currentQuestionNum').innerText = idx + 1;
+            document.getElementById('questionText').innerHTML = q.text;
+
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            if (q.type === 'complex') {
+                // Pilihan Ganda Kompleks (Bisa pilih lebih dari satu)
+                if (!Array.isArray(userAnswers[idx])) {
+                    userAnswers[idx] = [];
+                }
+
+                q.options.forEach((opt, optIdx) => {
+                    const isSelected = userAnswers[idx].includes(optIdx);
+                    const optEl = document.createElement('div');
+                    optEl.onclick = () => toggleComplexOption(idx, optIdx);
+                    optEl.className = `p-4 rounded-xl border text-sm cursor-pointer transition flex items-center justify-between ${
+                        isSelected 
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-950 font-semibold shadow-sm' 
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
+                    }`;
+
+                    optEl.innerHTML = `
+                        <span>${opt}</span>
+                        <div class="w-5 h-5 rounded-lg border flex items-center justify-center ${
+                            isSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'
+                        }">
+                            ${isSelected ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                        </div>
+                    `;
+                    optionsContainer.appendChild(optEl);
+                });
+            } else {
+                // Soal Benar-Salah (Pilih satu)
+                q.options.forEach((opt, optIdx) => {
+                    const isSelected = userAnswers[idx] === optIdx;
+                    const optEl = document.createElement('div');
+                    optEl.onclick = () => selectBooleanOption(idx, optIdx);
+                    optEl.className = `p-4 rounded-xl border text-sm cursor-pointer transition flex items-center justify-between ${
+                        isSelected 
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-950 font-semibold shadow-sm' 
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
+                    }`;
+
+                    optEl.innerHTML = `
+                        <span>${opt}</span>
+                        <div class="w-5 h-5 rounded-full border flex items-center justify-center ${
+                            isSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'
+                        }">
+                            ${isSelected ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                        </div>
+                    `;
+                    optionsContainer.appendChild(optEl);
+                });
+            }
+
+            document.getElementById('prevBtn').disabled = idx === 0;
+            document.getElementById('nextBtn').innerText = idx === questionsData.length - 1 ? 'Selesai' : 'Berikutnya';
+
+            updateGridBtnStyles();
+            updateAnsweredCount();
+        }
+
+        function toggleComplexOption(qIdx, optIdx) {
+            if (!Array.isArray(userAnswers[qIdx])) {
+                userAnswers[qIdx] = [];
+            }
+            const pos = userAnswers[qIdx].indexOf(optIdx);
+            if (pos > -1) {
+                userAnswers[qIdx].splice(pos, 1);
+            } else {
+                userAnswers[qIdx].push(optIdx);
+            }
+            saveCurrentSession();
+            loadQuestion(qIdx);
+        }
+
+        function selectBooleanOption(qIdx, optIdx) {
+            userAnswers[qIdx] = optIdx;
+            saveCurrentSession();
+            loadQuestion(qIdx);
+        }
+
+        function navigateQuestion(direction) {
+            const newIdx = currentQuestion + direction;
+            if (newIdx >= 0 && newIdx < questionsData.length) {
+                loadQuestion(newIdx);
+            } else if (newIdx >= questionsData.length) {
+                confirmSubmission();
+            }
+        }
+
+        function updateAnsweredCount() {
+            const count = userAnswers.filter((a, i) => {
+                if (a === null || a === undefined) return false;
+                if (Array.isArray(a) && a.length === 0) return false;
+                return true;
+            }).length;
+            document.getElementById('answeredCount').innerText = count;
+        }
+
+        function confirmSubmission() {
+            const answered = userAnswers.filter((a, i) => {
+                if (a === null || a === undefined) return false;
+                if (Array.isArray(a) && a.length === 0) return false;
+                return true;
+            }).length;
+            const remaining = questionsData.length - answered;
+
+            let msg = `Apakah Anda yakin ingin menyelesaikan ulangan harian ini?`;
+            if (remaining > 0) {
+                msg = `Masih ada ${remaining} soal yang belum dijawab. Yakin ingin mengirim jawaban?`;
+            }
+
+            if (confirm(msg)) {
+                submitQuiz();
+            }
+        }
+
+        function sendDataToSheets(payload) {
+            return fetch(payload.scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        }
+
+        function submitQuiz() {
+            clearInterval(timerInterval);
+
+            let scoreCount = 0;
+            questionsData.forEach((q, idx) => {
+                const userAns = userAnswers[idx];
+                if (q.type === 'complex') {
+                    // Penilaian Pilihan Ganda Kompleks (Harus tepat semua pilihan yang benar)
+                    const correctArr = [...q.answer].sort();
+                    const userArr = Array.isArray(userAns) ? [...userAns].sort() : [];
+                    if (JSON.stringify(correctArr) === JSON.stringify(userArr)) {
+                        scoreCount++;
+                    }
+                } else {
+                    // Penilaian Benar-Salah
+                    if (userAns === q.answer) {
+                        scoreCount++;
+                    }
+                }
+            });
+
+            const percentage = Math.round((scoreCount / questionsData.length) * 100);
+
+            localStorage.setItem(`completed_quiz_${studentData.kelas}_${studentData.absen}`, new Date().toISOString());
+
+            const payload = {
+                nama: studentData.nama,
+                kelas: studentData.kelas,
+                absen: studentData.absen,
+                skor: `${scoreCount}/${questionsData.length}`,
+                persentase: percentage,
+                scriptUrl: studentData.scriptUrl
+            };
+
+            document.getElementById('quizSection').classList.add('hidden');
+            document.getElementById('headerTimer').classList.add('hidden');
+            document.getElementById('resultSection').classList.remove('hidden');
+
+            document.getElementById('btnGuruNav').classList.remove('hidden');
+
+            document.getElementById('resNama').innerText = studentData.nama;
+            document.getElementById('resKelasAbsen',).innerText = `Kelas ${studentData.kelas} (No. ${studentData.absen})`;
+
+            if (navigator.onLine) {
+                attemptSubmission(payload);
+            } else {
+                savePendingSubmission(payload);
+                updateStatusUI(false, "Koneksi terputus. Jawaban tersimpan di memori lokal peranti.");
+            }
+
+            localStorage.removeItem('active_quiz_session');
+        }
+
+        function attemptSubmission(payload) {
+            const statusBox = document.getElementById('submissionStatus');
+            statusBox.className = "mt-6 p-3.5 bg-amber-50 rounded-xl text-xs font-semibold text-amber-800 flex items-center justify-center space-x-2 border border-amber-200";
+            statusBox.innerHTML = `<i class="fas fa-spinner fa-spin text-sm"></i><span>Mengirim jawaban ke server...</span>`;
+
+            sendDataToSheets(payload)
+                .then(() => {
+                    localStorage.removeItem('pending_quiz_submission');
+                    updateStatusUI(true, "Data Jawaban Berhasil Terkirim ke Rekap Guru");
+                })
+                .catch(err => {
+                    savePendingSubmission(payload);
+                    updateStatusUI(false, "Gagal terkirim otomatis. Jaringan internet terganggu.");
+                });
+        }
+
+        function savePendingSubmission(payload) {
+            localStorage.setItem('pending_quiz_submission', JSON.stringify(payload));
+        }
+
+        function updateStatusUI(isSuccess, message) {
+            const statusBox = document.getElementById('submissionStatus');
+            if (isSuccess) {
+                statusBox.className = "mt-6 p-3.5 bg-emerald-50 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-center space-x-2 border border-emerald-200";
+                statusBox.innerHTML = `<i class="fas fa-cloud-upload-alt text-base"></i> <span>Status: ${message}</span>`;
+            } else {
+                statusBox.className = "mt-6 p-4 bg-rose-50 rounded-xl text-xs text-rose-700 space-y-3 border border-rose-200 text-center";
+                statusBox.innerHTML = `
+                    <div class="flex items-center justify-center space-x-2 font-semibold">
+                        <i class="fas fa-wifi text-base text-rose-600"></i>
+                        <span>Status: ${message}</span>
+                    </div>
+                    <button onclick="retryPendingSubmission(this)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition">
+                        <i class="fas fa-sync-alt mr-1"></i> Coba Kirim Ulang Sekarang
+                    </button>
+                `;
+            }
+        }
+
+        function retryPendingSubmission(buttonEl) {
+            if (buttonEl) {
+                buttonEl.disabled = true;
+                buttonEl.classList.add('opacity-50', 'cursor-not-allowed');
+                buttonEl.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...`;
+            }
+
+            const pendingData = localStorage.getItem('pending_quiz_submission');
+            if (pendingData) {
+                const payload = JSON.parse(pendingData);
+                attemptSubmission(payload);
+            } else {
+                alert("Data jawaban Anda telah berhasil terkirim.");
+            }
+        }
+
+        // --- MANAJEMEN AKSES GURU ---
+
+        function openLoginModal() {
+            if (localStorage.getItem('guru_logged_in') === 'true') {
+                showGuruDashboard();
+            } else {
+                document.getElementById('guruUsername').value = '';
+                document.getElementById('guruPassword').value = '';
+                document.getElementById('loginErrorMsg').classList.add('hidden');
+                document.getElementById('loginGuruModal').classList.remove('hidden');
+            }
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginGuruModal').classList.add('hidden');
+        }
+
+        function processGuruLogin() {
+            const u = document.getElementById('guruUsername').value.trim();
+            const p = document.getElementById('guruPassword').value.trim();
+
+            if (u === GURU_USER && p === GURU_PASS) {
+                localStorage.setItem('guru_logged_in', 'true');
+                closeLoginModal();
+                showGuruDashboard();
+            } else {
+                document.getElementById('loginErrorMsg').classList.remove('hidden');
+            }
+        }
+
+        function logoutGuru() {
+            if (confirm("Apakah Anda yakin ingin keluar dari Panel Guru?")) {
+                localStorage.removeItem('guru_logged_in');
+                document.getElementById('guruDashboardSection').classList.add('hidden');
+                document.getElementById('identitasSection').classList.remove('hidden');
+                document.getElementById('btnGuruNav').innerHTML = `<i class="fas fa-user-shield"></i><span>Akses Guru</span>`;
+                document.getElementById('btnGuruNav').classList.remove('hidden');
+            }
+        }
+
+        function showGuruDashboard() {
+            document.getElementById('identitasSection').classList.add('hidden');
+            document.getElementById('rulesSection').classList.add('hidden');
+            document.getElementById('quizSection').classList.add('hidden');
+            document.getElementById('resultSection').classList.add('hidden');
+            document.getElementById('guruDashboardSection').classList.remove('hidden');
+            document.getElementById('btnGuruNav').innerHTML = `<i class="fas fa-user-check text-slate-950"></i><span>Panel Guru Aktif</span>`;
+            document.getElementById('btnGuruNav').classList.remove('hidden');
+
+            fetchGuruData();
+        }
+
+        async function fetchGuruData() {
+            const scriptUrl = document.getElementById('scriptUrl').value.trim();
+            const loader = document.getElementById('guruTableLoader');
+            const emptyState = document.getElementById('guruTableEmpty');
+            const tbody = document.getElementById('guruTableBody');
+            const refreshIcon = document.getElementById('refreshIcon');
+
+            tbody.innerHTML = '';
+            loader.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            refreshIcon.classList.add('fa-spin');
+
+            try {
+                const response = await fetch(`${scriptUrl}?action=getScores`);
+                const result = await response.json();
+
+                if (result && result.data && Array.isArray(result.data)) {
+                    guruAllData = result.data;
+                } else if (Array.isArray(result)) {
+                    guruAllData = result;
+                } else {
+                    guruAllData = [];
+                }
+            } catch (error) {
+                const storedLocal = localStorage.getItem('guru_cached_scores');
+                if (storedLocal) {
+                    guruAllData = JSON.parse(storedLocal);
+                } else {
+                    guruAllData = [];
+                }
+            } finally {
+                loader.classList.add('hidden');
+                refreshIcon.classList.remove('fa-spin');
+                
+                localStorage.setItem('guru_cached_scores', JSON.stringify(guruAllData));
+                filterAndRenderGuruTable();
+            }
+        }
+
+        function filterAndRenderGuruTable() {
+            const tbody = document.getElementById('guruTableBody');
+            const emptyState = document.getElementById('guruTableEmpty');
+            const keyword = document.getElementById('searchGuru').value.toLowerCase().trim();
+            const kelasFilter = document.getElementById('filterKelasGuru').value;
+
+            tbody.innerHTML = '';
+
+            let filtered = guruAllData.filter(item => {
+                const nameMatch = (item.nama || item.namaSiswa || '').toLowerCase().includes(keyword);
+                const classMatch = (kelasFilter === 'ALL') || ((item.kelas || item.kelasSiswa) === kelasFilter);
+                return nameMatch && classMatch;
+            });
+
+            document.getElementById('totalSiswaBadge').innerText = `${filtered.length} Siswa`;
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            filtered.forEach((siswa, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+
+                const nama = siswa.nama || siswa.namaSiswa || '-';
+                const kelas = siswa.kelas || siswa.kelasSiswa || '-';
+                const absen = siswa.absen || siswa.noAbsen || '-';
+                const skor = siswa.skor || '-';
+                const persentase = siswa.persentase !== undefined ? siswa.persentase : (siswa.nilai || 0);
+
+                let persentaseBadge = 'bg-rose-100 text-rose-700 border-rose-200';
+                if (persentase >= 75) {
+                    persentaseBadge = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                } else if (persentase >= 60) {
+                    persentaseBadge = 'bg-amber-100 text-amber-800 border-amber-300';
+                }
+
+                tr.innerHTML = `
+                    <td class="p-3.5 font-bold text-slate-800">${nama}</td>
+                    <td class="p-3.5 text-center"><span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-900 font-bold text-xs border border-emerald-200">${kelas}</span></td>
+                    <td class="p-3.5 text-center font-semibold text-slate-600">${absen}</td>
+                    <td class="p-3.5 text-center font-medium text-slate-600">${skor}</td>
+                    <td class="p-3.5 text-center">
+                        <span class="px-3 py-1 rounded-full text-xs font-extrabold border ${persentaseBadge}">${persentase}</span>
+                    </td>
+                    <td class="p-3.5 text-center space-x-1">
+                        <button onclick="openEditModal(${index})" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg font-bold text-[11px] transition inline-flex items-center space-x-1">
+                            <i class="fas fa-edit"></i>
+                            <span>Edit</span>
+                        </button>
+                        <button onclick="deleteGuruRecord(${index})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg font-bold text-[11px] transition inline-flex items-center space-x-1">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Hapus</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openEditModal(index) {
+            const siswa = guruAllData[index];
+            if (!siswa) return;
+
+            document.getElementById('editIndex').value = index;
+            document.getElementById('editNama').value = siswa.nama || siswa.namaSiswa || '';
+
+            let currentSkorVal = 0;
+            if (siswa.skor && typeof siswa.skor === 'string' && siswa.skor.includes('/')) {
+                currentSkorVal = parseInt(siswa.skor.split('/')[0]) || 0;
+            } else {
+                currentSkorVal = parseInt(siswa.skor) || 0;
+            }
+
+            document.getElementById('editSkor').value = currentSkorVal;
+            calculateEditPercentage();
+
+            document.getElementById('editNilaiModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editNilaiModal').classList.add('hidden');
+        }
+
+        function calculateEditPercentage() {
+            const skorInput = parseInt(document.getElementById('editSkor').value) || 0;
+            const persentase = Math.round((skorInput / 25) * 100);
+            document.getElementById('editPersentase').value = persentase;
+        }
+
+        async function saveEditedScore() {
+            const index = document.getElementById('editIndex').value;
+            const newSkorVal = parseInt(document.getElementById('editSkor').value) || 0;
+            const newPersentase = parseInt(document.getElementById('editPersentase').value) || 0;
+
+            const targetSiswa = guruAllData[index];
+            if (!targetSiswa) return;
+
+            targetSiswa.skor = `${newSkorVal}/25`;
+            targetSiswa.persentase = newPersentase;
+
+            localStorage.setItem('guru_cached_scores', JSON.stringify(guruAllData));
+
+            const scriptUrl = document.getElementById('scriptUrl').value.trim();
+            try {
+                fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'editScore',
+                        nama: targetSiswa.nama || targetSiswa.namaSiswa,
+                        kelas: targetSiswa.kelas || targetSiswa.kelasSiswa,
+                        absen: targetSiswa.absen || targetSiswa.noAbsen,
+                        skor: `${newSkorVal}/25`,
+                        persentase: newPersentase
+                    })
+                });
+            } catch (e) {
+                console.log("Sync edit error:", e);
+            }
+
+            closeEditModal();
+            filterAndRenderGuruTable();
+            alert("Nilai siswa berhasil diperbarui!");
+        }
+
+        async function deleteGuruRecord(index) {
+            const targetSiswa = guruAllData[index];
+            if (!targetSiswa) return;
+
+            const nama = targetSiswa.nama || targetSiswa.namaSiswa;
+            const kelas = targetSiswa.kelas || targetSsiswa.kelasSiswa;
+            const absen = targetSiswa.absen || targetSiswa.noAbsen;
+
+            if (confirm(`Apakah Anda yakin ingin menghapus data untuk ${nama} (Kelas ${kelas}, Absen ${absen})?`)) {
+                guruAllData.splice(index, 1);
+                localStorage.setItem('guru_cached_scores', JSON.stringify(guruAllData));
+
+                localStorage.removeItem(`completed_quiz_${kelas}_${absen}`);
+
+                const scriptUrl = document.getElementById('scriptUrl').value.trim();
+                try {
+                    fetch(scriptUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'deleteScore',
+                            kelas: kelas,
+                            absen: absen
+                        })
+                    });
+                } catch (e) {
+                    console.log("Sync delete error:", e);
+                }
+
+                filterAndRenderGuruTable();
+                alert("Data berhasil dihapus!");
+            }
+        }
+
+        window.addEventListener('online', () => {
+            const pendingData = localStorage.getItem('pending_quiz_submission');
+            if (pendingData) {
+                const payload = JSON.parse(pendingData);
+                attemptSubmission(payload);
+            }
+        });
+    </script>
+</body>
+</html>
